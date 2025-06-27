@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dividend Projection Results</title> {# Changed title for new tab #}
+    <!-- Assuming style.css is correctly linked via Flask's static folder -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Basic styling for demonstration if style.css is not available */
+        body { font-family: sans-serif; line-height: 1.6; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #0056b3; margin-bottom: 15px; }
+        .section { border: 1px solid #ddd; border-radius: 5px; padding: 20px; margin-bottom: 20px; background-color: #fdfdfd; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input[type="number"], .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        .checkbox-group input { margin-right: 10px; }
+        button[type="submit"], .download-buttons button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            display: block; /* Ensure buttons take full width or use flex for layout */
+            width: 100%; /* For single button */
+            margin-top: 20px;
+        }
+        button[type="submit"]:hover, .download-buttons button:hover {
+            background-color: #0056b3;
+        }
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .download-buttons button {
+            flex-grow: 1;
+        }
+        .download-buttons button.csv-btn { background-color: #28a745; }
+        .download-buttons button.pdf-btn { background-color: #dc3545; }
+        .download-buttons button.csv-btn:hover { background-color: #218838; }
+        .download-buttons button.pdf-btn:hover { background-color: #c82333; }
+
+        .output-section { background-color: #e9f5ff; border-color: #b3d9ff; }
+        .output-summary p { margin-bottom: 5px; }
+        .risk-alerts { color: #d9534f; list-style-type: disc; margin-left: 20px; }
+        .no-alerts { color: #5cb85c; }
+        .table-container { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table th, table td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+        table th { background-color: #f2f2f2; font-weight: bold; text-align: center; }
+        table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+        table td:first-child { text-align: center; } /* Center Year column */
+        .chart-container { position: relative; height: 400px; width: 100%; margin-top: 20px; }
+        .error-message { color: red; font-weight: bold; margin-bottom: 15px; }
+
+        /* NEW: Class to hide elements */
+        .hidden-in-new-tab {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# Add a class to hide the main title #}
+        <h1 id="mainTitle" class="{% if results %}hidden-in-new-tab{% endif %}">Dividend Yield Calculator</h1> 
+
+        {% if error %}
+            {# Add a class to hide the error message container #}
+            <div id="errorMessageContainer" class="error-message {% if results %}hidden-in-new-tab{% endif %}">{{ error }}</div> 
+        {% endif %}
+
+        {# The main form for input. This form will be hidden in the new tab if results are present. #}
+        <form id="calculatorForm" method="POST" target="_blank" class="{% if results %}hidden-in-new-tab{% endif %}"> {# Add a class to hide the form #}
+            <div class="section">
+                <h2>1. Investment Details</h2>
+                <div class="input-group">
+                    <label for="initial_shares">Initial Investment Shares:</label>
+                    <input type="number" id="initial_shares" name="initial_shares" step="0.01" min="0" value="{{ request.form.initial_shares|default('100') }}" required>
+                </div>
+                <div class="input-group">
+                    <label for="current_price">Current Share Price ($):</label>
+                    <input type="number" id="current_price" name="current_price" step="0.01" min="0.01" value="{{ request.form.current_price|default('50.00') }}" required>
+                </div>
+                <div class="input-group">
+                    <label for="share_price_growth_rate">Share Price Annual Growth Rate (%):</label>
+                    <input type="number" id="share_price_growth_rate" name="share_price_growth_rate" step="0.01" value="{{ request.form.share_price_growth_rate|default('0.00') }}">
+                </div>
+                <div class="input-group">
+                    <label for="time_horizon">Time Horizon (Years):</label>
+                    <input type="number" id="time_horizon" name="time_horizon" min="1" max="50" value="{{ request.form.time_horizon|default('10') }}" required>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>2. Dividend Details</h2>
+                <div class="input-group">
+                    <label for="yield_type">Yield Type Selection:</label>
+                    <select id="yield_type" name="yield_type" onchange="toggleYieldInputs()">
+                        <option value="indicated" {% if request.form.yield_type == 'indicated' or not request.form.yield_type %}selected{% endif %}>Current (Indicated)</option>
+                        <option value="trailing" {% if request.form.yield_type == 'trailing' %}selected{% endif %}>Trailing (TTM)</option>
+                        <option value="forward" {% if request.form.yield_type == 'forward' %}selected{% endif %}>Forward</option>
+                    </select>
+                </div>
+
+                <div id="indicated_dividend_inputs" class="input-group yield-input">
+                    <label for="annual_dividend_indicated">Annual Dividend Per Share (Indicated) ($):</label>
+                    <input type="number" id="annual_dividend_indicated" name="annual_dividend_indicated" step="0.01" min="0" value="{{ request.form.annual_dividend_indicated|default('2.50') }}">
+                </div>
+                <div id="trailing_dividend_inputs" class="input-group yield-input">
+                    <label for="ttm_dividend">TTM Dividend Per Share ($):</label>
+                    <input type="number" id="ttm_dividend" name="ttm_dividend" step="0.01" min="0" value="{{ request.form.ttm_dividend|default('2.40') }}">
+                </div>
+                <div id="forward_dividend_inputs" class="input-group yield-input">
+                    <label for="next_expected_dividend">Next Expected Dividend Per Share ($):</label>
+                    <input type="number" id="next_expected_dividend" name="next_expected_dividend" step="0.01" min="0" value="{{ request.form.next_expected_dividend|default('0.65') }}">
+                </div>
+
+                <div class="input-group">
+                    <label for="dividend_frequency">Dividend Frequency:</label>
+                    <select id="dividend_frequency" name="dividend_frequency" onchange="toggleCustomFrequency()">
+                        <option value="monthly" {% if request.form.dividend_frequency == 'monthly' %}selected{% endif %}>Monthly (12x)</option>
+                        <option value="quarterly" {% if request.form.dividend_frequency == 'quarterly' or not request.form.dividend_frequency %}selected{% endif %}>Quarterly (4x)</option>
+                        <option value="semi-annual" {% if request.form.dividend_frequency == 'semi-annual' %}selected{% endif %}>Semi-Annual (2x)</option>
+                        <option value="annual" {% if request.form.dividend_frequency == 'annual' %}selected{% endif %}>Annual (1x)</option>
+                        <option value="custom" {% if request.form.dividend_frequency == 'custom' %}selected{% endif %}>Custom</option>
+                    </select>
+                </div>
+                <div id="custom_frequency_input" class="input-group">
+                    <label for="custom_frequency_number">Number of Payouts Per Year (Custom):</label>
+                    <input type="number" id="custom_frequency_number" name="custom_frequency_number" min="1" value="{{ request.form.custom_frequency_number|default('1') }}">
+                </div>
+                
+                <div class="input-group">
+                    <label for="dividend_growth_rate">Annual Dividend Growth Rate (%):</label>
+                    <input type="number" id="dividend_growth_rate" name="dividend_growth_rate" step="0.01" value="{{ request.form.dividend_growth_rate|default('2.00') }}">
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>3. Advanced Options</h2>
+                <div class="input-group checkbox-group">
+                    <input type="checkbox" id="drip_toggle" name="drip_toggle" {% if request.form.drip_toggle == 'on' %}checked{% endif %}>
+                    <label for="drip_toggle">Enable Dividend Reinvestment Plan (DRIP)</label>
+                </div>
+
+                <h3>Sustainability Metrics (Optional)</h3>
+                <div class="input-group">
+                    <label for="payout_ratio">Dividend Payout Ratio (%):</label>
+                    <input type="number" id="payout_ratio" name="payout_ratio" step="0.01" min="0" value="{{ request.form.payout_ratio|default('70.00') }}">
+                </div>
+                <div class="input-group">
+                    <label for="debt_to_equity">Debt-to-Equity Ratio:</label>
+                    <input type="number" id="debt_to_equity" name="debt_to_equity" step="0.01" min="0" value="{{ request.form.debt_to_equity|default('0.50') }}">
+                </div>
+                <div class="input-group">
+                    <label for="free_cash_flow">Free Cash Flow (Last 12 Months) ($):</label>
+                    <input type="number" id="free_cash_flow" name="free_cash_flow" step="0.01" value="{{ request.form.free_cash_flow|default('100000000') }}">
+                </div>
+                <div class="input-group">
+                    <label for="eps">Earnings Per Share (EPS) ($):</label>
+                    <input type="number" id="eps" name="eps" step="0.01" value="{{ request.form.eps|default('3.00') }}">
+                </div>
+                
+                <h3>Tax & Inflation</h3>
+                <div class="input-group">
+                    <label for="tax_exemption_threshold">Tax Exemption Threshold ($):</label>
+                    <input type="number" id="tax_exemption_threshold" name="tax_exemption_threshold" step="0.01" value="{{ request.form.tax_exemption_threshold|default('0.00') }}">
+                </div>
+                <div class="input-group">
+                    <label for="inflation_rate">Annual Inflation Rate (%):</label>
+                    <input type="number" id="inflation_rate" name="inflation_rate" step="0.01" value="{{ request.form.inflation_rate|default('3.00') }}">
+                </div>
+            </div>
+
+            <button type="submit" id="mainCalculateButton" class="{% if results %}hidden-in-new-tab{% endif %}">Calculate Projections</button> 
+        </form>
+
+        {# The results section, which will always be visible if results are present #}
+        {% if results %}
+            <div class="section output-section">
+                <h2>4. Calculation Results</h2>
+                <div class="output-summary">
+                    <h3>Current Metrics:</h3>
+                    <p>Initial Share Price: <strong>${{ results.final_share_price|default('N/A') }}</strong></p>
+                    <p>Initial Shares: <strong>{{ results.final_shares|default('N/A') }}</strong></p>
+                    <p>Calculated Nominal Yield: <span class="result-value">{{ "%.2f"|format(results.initial_nominal_yield) }}%</span></p>
+                    <p>Calculated Real Yield (Inflation Adjusted): <span class="result-value">{{ "%.2f"|format(results.initial_real_yield) }}%</span></p>
+                </div>
+                
+                {% if results.sustainability_alerts %}
+                    <h3>Sustainability Risk Alerts:</h3>
+                    <ul class="risk-alerts">
+                        {% for alert in results.sustainability_alerts %}
+                            <li>{{ alert }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="no-alerts">No immediate sustainability risks detected based on inputs.</p>
+                {% endif %}
+
+                <h3>Projected Income & Shares Over {{ results.projected_data.years|last }} Years:</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Shares Owned</th>
+                                <th>Share Price</th>
+                                <th>Dividend/Share</th>
+                                <th>Annual Gross Income</th>
+                                <th>Annual After-Tax Income</th>
+                                <th>Cumulative Gross Income</th>
+                                <th>Cumulative After-Tax Income</th>
+                                <th>Nominal Yield (%)</th>
+                                <th>Real Yield (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(results.projected_data.years|length) %}
+                            <tr>
+                                <td>{{ results.projected_data.years[i] }}</td>
+                                <td>{{ "%.4f"|format(results.projected_data.shares_owned[i]) }}</td>
+                                <td>${{ "%.2f"|format(results.projected_data.share_price[i]) }}</td>
+                                <td>${{ "%.2f"|format(results.projected_data.annual_dividend_per_share[i]) }}</td>
+                                <td>${{ "%.2f"|format(results.projected_data.annual_gross_income[i]) }}</td>
+                                <td>${{ "%.2f"|format(results.projected_data.annual_after_tax_income[i]) }}</td>
+                                <td>${{ "%.2f"|format(results.projected_data.cumulative_gross_income[i]) }}</td>
+                                <td>${{ "%.2f"|format(results.projected_data.cumulative_after_tax_income[i]) }}</td>
+                                <td>{{ "%.2f"|format(results.projected_data.nominal_yield_over_time[i]) if results.projected_data.nominal_yield_over_time[i] is not none else 'N/A' }}</td>
+                                <td>{{ "%.2f"|format(results.projected_data.real_yield_over_time[i]) if results.projected_data.real_yield_over_time[i] is not none else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="final-summary">
+                    <h3>Summary After {{ results.projected_data.years|last }} Years:</h3>
+                    <p>Total Cumulative Gross Dividend Income: <strong>${{ "%.2f"|format(results.total_cumulative_gross_income) }}</strong></p>
+                    <p>Total Cumulative After-Tax Dividend Income: <strong>${{ "%.2f"|format(results.total_cumulative_after_tax_income) }}</strong></p>
+                    <p>Total Value (Capital Gains + After-Tax Dividends): <strong>${{ "%.2f"|format(results.total_return_value) }}</strong></p>
+                    <p>Final Shares Owned: <strong>{{ "%.4f"|format(results.final_shares) }}</strong></p>
+                    <p>Final Share Price: <strong>${{ "%.2f"|format(results.final_share_price) }}</strong></p>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="yieldOverTimeChart"></canvas>
+                </div>
+
+                <div class="download-buttons" style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="button" onclick="downloadFile('csv')" class="csv-btn">Download as CSV</button>
+                    <button type="button" onclick="downloadFile('pdf')" class="pdf-btn">Download as PDF</button>
+                </div>
+                
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // JavaScript for conditional input visibility
+        function toggleYieldInputs() {
+            var yieldType = document.getElementById('yield_type').value;
+            document.querySelectorAll('.yield-input').forEach(function(el) {
+                el.style.display = 'none';
+            });
+            if (yieldType === 'indicated') {
+                document.getElementById('indicated_dividend_inputs').style.display = 'block';
+            } else if (yieldType === 'trailing') {
+                document.getElementById('trailing_dividend_inputs').style.display = 'block';
+            } else if (yieldType === 'forward') {
+                document.getElementById('forward_dividend_inputs').style.display = 'block';
+            }
+        }
+
+        function toggleCustomFrequency() {
+            var frequencyType = document.getElementById('dividend_frequency').value;
+            var customInputDiv = document.getElementById('custom_frequency_input');
+            if (frequencyType === 'custom') {
+                customInputDiv.style.display = 'block';
+            } else {
+                customInputDiv.style.display = 'none';
+            }
+        }
+
+        // Function to create a hidden form and submit it for download
+        function downloadFile(format) {
+            var form = document.getElementById('calculatorForm');
+            var originalAction = form.action;
+            var originalMethod = form.method;
+            var originalTarget = form.target; 
+
+            // Temporarily change form action and target for download
+            if (format === 'csv') {
+                form.action = '/download_csv';
+            } else if (format === 'pdf') {
+                form.action = '/download_pdf';
+            }
+            form.method = 'POST'; 
+            form.target = '_blank'; 
+
+            // Submit the form
+            form.submit();
+
+            // Revert form attributes to original to not disturb main calculation
+            form.action = originalAction;
+            form.method = originalMethod;
+            form.target = originalTarget; 
+        }
+
+        // Run on page load to set initial state and potentially initialize Chart.js
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleYieldInputs();
+            toggleCustomFrequency();
+
+            // Initialize Chart.js ONLY if results and projected_data exist
+            {% if results and results.projected_data %}
+                var chartData = {{ results.projected_data|tojson }}; 
+                var ctx = document.getElementById('yieldOverTimeChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.years,
+                        datasets: [{
+                            label: 'Nominal Yield',
+                            data: chartData.nominal_yield_over_time,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Real Yield',
+                            data: chartData.real_yield_over_time,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, 
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Yield (%)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Year'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Logic to hide all elements except the output-section when results are present and it's a new tab
+                var isNewTab = (window.opener != null); 
+                if (isNewTab) {
+                    // Hide the main title and error message container directly using their IDs
+                    var mainTitle = document.getElementById('mainTitle');
+                    if (mainTitle) {
+                        mainTitle.classList.add('hidden-in-new-tab');
+                    }
+                    var errorMessageContainer = document.getElementById('errorMessageContainer');
+                    if (errorMessageContainer) {
+                        errorMessageContainer.classList.add('hidden-in-new-tab');
+                    }
+                    // Hide the calculator form directly using its ID
+                    var formElement = document.getElementById('calculatorForm');
+                    if (formElement) {
+                        formElement.classList.add('hidden-in-new-tab');
+                    }
+
+                    // Adjust container width for better results display
+                    var container = document.querySelector('.container');
+                    if(container) {
+                        container.style.maxWidth = '1200px';
+                        container.style.margin = '20px auto';
+                    }
+                }
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

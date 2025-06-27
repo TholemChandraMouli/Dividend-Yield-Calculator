@@ -1,0 +1,389 @@
+/* General Resets & Typography */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif; /* Using Inter for a modern look */
+    /* Changed background to a new soft, inviting sky blue gradient for the overall screen */
+    background: linear-gradient(135deg, #aaddff 0%, #66b3ff 100%); /* New shades of sky blue */
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    color: #333;
+    line-height: 1.6;
+    font-size: 16px; /* Base font size */
+}
+
+/* Main Container */
+.container {
+    background-color: #f0faff; /* Changed to a very light sky blue */
+    border-radius: 16px; /* Slightly more rounded */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Softer, wider shadow */
+    padding: 40px 50px; /* More generous padding */
+    width: 100%;
+    max-width: 950px; /* Slightly wider container */
+    transition: all 0.3s ease-in-out;
+}
+
+/* Headings */
+h1 {
+    text-align: center;
+    color: #007bff; /* Changed color to a primary blue for emphasis */
+    margin-bottom: 35px;
+    font-size: 2.5em; /* Larger main title */
+    font-weight: 700; /* Bolder */
+    position: relative; /* For pseudo-element underline */
+    padding-bottom: 20px;
+}
+
+h1::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 80px; /* Short, prominent underline */
+    height: 4px;
+    background-color: #3498db; /* Primary blue */
+    border-radius: 2px;
+}
+
+h2 {
+    color: #34495e; /* Sub-heading color */
+    margin-top: 35px;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    font-weight: 600;
+    border-bottom: 1px solid #a8d9f0; /* Subtle light sky blue line */
+    padding-bottom: 12px;
+}
+
+h3 {
+    color: #555;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    font-weight: 500;
+}
+
+/* Sections */
+.section {
+    background-color: #f8fcff; /* Changed to a very light sky blue */
+    border: 1px solid #cce5ff; /* Lighter blue border */
+    border-radius: 12px; /* Consistent rounding */
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Soft inner shadow */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Input Groups */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #444;
+    font-size: 0.95em;
+}
+
+.input-group input[type="number"],
+.input-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #a8d9f0; /* Light blue border for inputs */
+    border-radius: 8px; /* Slightly more rounded inputs */
+    font-size: 1em;
+    color: #333;
+    background-color: #eaf6ff; /* Changed to a light blue */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-group input[type="number"]:focus,
+.input-group select:focus {
+    border-color: #3498db; /* Primary blue on focus */
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.3); /* Softer glow */
+    outline: none;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin-right: 12px;
+    transform: scale(1.4); /* Larger checkbox */
+    accent-color: #3498db; /* Blue checkbox color */
+}
+
+/* Buttons */
+button {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(to right, #3498db, #2980b9); /* Gradient button */
+    color: white;
+    border: none;
+    border-radius: 10px; /* More rounded buttons */
+    font-size: 1.25em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 30px;
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4); /* Button shadow */
+}
+
+button:hover {
+    background: linear-gradient(to right, #2980b9, #3498db); /* Reverse gradient on hover */
+    transform: translateY(-3px); /* More pronounced lift */
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.6);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(52, 152, 219, 0.4);
+}
+
+/* Error Message */
+.error-message {
+    background-color: #ffe0e6; /* Softer red background */
+    color: #c0392b; /* Darker red text */
+    padding: 15px;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(255, 99, 71, 0.1);
+}
+
+/* Output Section */
+.output-section {
+    background-color: #eaf6ff; /* Lighter blue for results */
+    border-color: #cce5ff;
+    padding: 30px; /* Consistent padding */
+}
+
+.output-summary p, .final-summary p {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+}
+
+.result-value {
+    color: #007bff; /* Primary blue for results */
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.risk-alerts {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.risk-alerts li {
+    background-color: #fff0f0; /* Very light red */
+    border-left: 6px solid #e74c3c; /* Stronger red strip */
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    color: #c0392b;
+    font-size: 0.95em;
+    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.1);
+}
+
+.no-alerts {
+    background-color: #e9fff4; /* Very light green */
+    border-left: 6px solid #2ecc71; /* Stronger green strip */
+    padding: 12px 18px;
+    margin-bottom: 25px;
+    border-radius: 6px;
+    color: #27ae60;
+    font-size: 0.95em;
+    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.1);
+}
+
+/* Table Styling for Projections */
+.table-container {
+    overflow-x: auto;
+    margin-top: 25px;
+    border: 1px solid #a8d9f0; /* Lighter table border, now sky blue */
+    border-radius: 10px; /* Rounded table container */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.07);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate; /* Allows border-radius on cells */
+    border-spacing: 0; /* Remove default spacing */
+    margin: 0;
+}
+
+table thead th:first-child { border-top-left-radius: 10px; }
+table thead th:last-child { border-top-right-radius: 10px; }
+table tbody tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+table tbody tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+
+
+table th, table td {
+    padding: 14px 18px; /* More padding */
+    text-align: right;
+    border-bottom: 1px solid #cce5ff; /* Very light sky blue row separator */
+    white-space: nowrap;
+    font-size: 0.95em;
+}
+
+table th:first-child, table td:first-child {
+    text-align: left;
+}
+
+table th {
+    background-color: #d7e9f7; /* Changed header background to a light sky blue */
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    font-size: 0.88em;
+    border-bottom: 2px solid #a8d9f0; /* Stronger separator below header, now sky blue */
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #eaf6ff; /* Changed even rows background to a slightly darker light blue */
+}
+
+table tbody tr:hover {
+    background-color: #cce5ff; /* Lighter hover effect to a more noticeable sky blue */
+}
+
+/* Final Summary */
+.final-summary {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 2px dashed #a8d9f0; /* More distinct dashed border, now sky blue */
+}
+
+.final-summary h3 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 1.5em;
+}
+
+.final-summary p {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #0056b3;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Chart Styling */
+.chart-container {
+    margin-top: 35px;
+    background-color: #e0f2f7; /* Changed to light sky blue */
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #cce5ff; /* Light sky blue border */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.07);
+}
+
+/* Download Buttons */
+.download-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px; /* More space between buttons */
+    justify-content: center;
+}
+
+.download-buttons button {
+    flex-grow: 1;
+    padding: 14px 25px; /* Adjusted padding for download buttons */
+    font-size: 1.1em;
+    margin-top: 0; /* Remove top margin inherited from generic button style */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.download-buttons button.csv-btn {
+    background: linear-gradient(to right, #2ecc71, #27ae60); /* Green gradient */
+    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+}
+.download-buttons button.csv-btn:hover {
+    background: linear-gradient(to right, #27ae60, #2ecc71);
+    box-shadow: 0 8px 20px rgba(46, 204, 113, 0.6);
+}
+
+.download-buttons button.pdf-btn {
+    background: linear-gradient(to right, #e74c3c, #c0392b); /* Red gradient */
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+.download-buttons button.pdf-btn:hover {
+    background: linear-gradient(to right, #c0392b, #e74c3c);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.6);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    .container {
+        padding: 25px 30px;
+    }
+    h1 {
+        font-size: 2em;
+        margin-bottom: 25px;
+    }
+    h2 {
+        font-size: 1.4em;
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+    h3 {
+        font-size: 1.2em;
+    }
+    .section {
+        padding: 20px;
+    }
+    .input-group input, .input-group select, button {
+        font-size: 1em;
+        padding: 12px;
+    }
+    .download-buttons {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        gap: 10px;
+    }
+    table th, table td {
+        padding: 10px 12px;
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    .container {
+        padding: 20px;
+    }
+    h1 {
+        font-size: 1.8em;
+    }
+}
+
+/* Styles for results-only view in new tab (already implemented in HTML) */
+/* The HTML adds 'hidden-in-new-tab' class based on {% if results %} */
+.hidden-in-new-tab {
+    display: none !important;
+}
