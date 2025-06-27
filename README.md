@@ -1,6 +1,6 @@
 # Dividend-Yield-Calculator
 
-Dividend Projection Calculator:
+Dividend Yield Calculator:
 -------------------------------
 A comprehensive tool to calculate dividend yield and project future dividend income and share growth, helping investors make informed decisions.
 
